@@ -9,13 +9,13 @@ def isUser(name):
     try:
         ref = open("/home/2014/ajolly3/public_html/users.csv","r")
         #OPTIMIZE THIS LOOP
-        foundUser = false
-        while (foundUser == false):
+        foundUser = False
+        while (foundUser == False):
             user = ref.readline()
-            if (user == name):
-                foundUser = true
-            [elif user == '\n':
-             return false]
+            if (user == (name+'\n')):
+		foundUser = True
+            elif user == '\n':
+                return False
         return foundUser
     except IOError:
         print "IO Error"
@@ -30,7 +30,7 @@ def CreateNewUser(name, limit):
         ref = open(filename, "w")
         ref.write(limit)
         ref2 = open("./users.csv", "a")
-        ref2.write(name + '\n')
+        ref2.write(name + "\n")
     except IOError:
         print "IO Error"
     except:
@@ -53,8 +53,8 @@ def ReadUserInfo(address):
                     singleExpense = line.split(",")
                     expenses.append(singleExpense)
             return [limit, expenses]
-        [else:
-         return [limit, []]]
+        else:
+	    return [limit, []]
     except IOError:
         print "IO Error"
     except:
@@ -85,7 +85,7 @@ def UpdateLimit(address, newLimit):
         print "Unexpected error:", sys.exc_info()[0]
         raise
 
-def addExpense(name, date, amount, description)
+def addExpense(name, date, amount, description):
     try:
         ref = open("./" + name + ".csv", "a")
         ref.write(date + "," + amount + "," + description + '\n')
@@ -103,10 +103,10 @@ def CreateNewAccount(name, init, error):
     print "<title>Create a new account</title>"
     print "</head>"
     if (init == "1"):
-        print "That username does not exist."
-    [elif (error != "0"):
-     print "Error: %s. Try again." % (error,)
-    print "If you would like to create an account, fill out the following form and click \"Submit\""
+        print "That username does not exist.<br>"
+    elif (error != "0"):
+        print "Error: %s. Try again." % (error,)
+    print "If you would like to create an account, fill out the following form and click \"Submit\".<br>"
     print "Else, click \"Cancel\" to go back to the sign-in page.<br>"
     print "<form name=\"createNewUser\" action=\"./ExpenseCalculator.py\" method=\"post\">"
     print "Select a username (letters and numbers only): <input type=\"text\" name=\"name\">"
@@ -117,7 +117,7 @@ def CreateNewAccount(name, init, error):
 # REPLACE WITH SIMPLE LINK??:
     
     print "<form name=\"backToLogin\" action=\"./index.html\" method=\"post\">"
-    print "<input type=\"cancel\" value=\"Cancel\">"
+    print "<input type=\"submit\" value=\"Cancel\">"
     print "</form>"
     
 # layout webpage
@@ -161,33 +161,36 @@ noError = "0"
 error= ""
 
 if "import" in form:
-    if (isUser(name) == true):
+    if (isUser(name) == True):
         limitAndExpenses = ReadUserInfo(fileName)
         limit = limitAndExpenses[0]
         expenses = limitAndExpenses[1]
         Layout(name, limit, expenses, noError)
-    [else:
-     CreateNewAccount(name, "1", "0")]
+    else:
+        CreateNewAccount(name, "1", "0")
 
 if "newLimit" in form:
     newLimit = form["newLimit"].value
     
     # need "== true"?
     
-    if (!newLimit.isdigit())
+    if (not newLimit.isdigit()):
         Layout(name, limit, expenses, "Allowance must be a number")
-    [else:
-     limit = newLimit
-     UpdateLimit(fileName, form["newLimit"].value)
-     Layout(name, limit, expenses, error)]
+    else:
+        limit = newLimit
+        UpdateLimit(fileName, form["newLimit"].value)
+        Layout(name, limit, expenses, error)
     
-if "createNewUser" in form:    
-    if (!name.isalnum()):
+if "createNewUser" in form:
+    CreateNewUser(name, form["limit"].value)
+"""
+    if (not name.isalnum()):
         CreateNewAccount(name, "0", "Username must be alphanumeric characters only")    
-    [elif (!form["limit"].value.isdigit()):
-     CreateNewAccount(name, "0", "Allowance must be a number")]
-    [else:
-     CreateNewUser(name, form["limit"].value)]
+    elif (not form["limit"].value.isdigit()):
+        CreateNewAccount(name, "0", "Allowance must be a number")
+    else:
+        CreateNewUser(name, form["limit"].value)
+"""
 
 if "addExpense" in form:
     date = form["date"].value
@@ -195,12 +198,13 @@ if "addExpense" in form:
     description = form["description"].value
 
     #check valid date
-    if (!date.isdigit()):
+    if (not date.isdigit()):
         Layout(name, limit, expense, "Date must be of format  ")
 
-    [elif (!amount.isdigit()):
-        Layout(name, limit, expense, "Amount must be a floating point number")]
-    [elif (!description.isalnum()):
-     Layout(name, limit, expense, "Description must be an alphanumeric string")]
-    [else:
-     addExpense(name, date, amount, description)]
+    elif (not amount.isdigit()):
+        Layout(name, limit, expense, "Amount must be a floating point number")
+    elif (not description.isalnum()):
+        Layout(name, limit, expense, "Description must be an alphanumeric string")
+    else:
+        addExpense(name, date, amount, description)
+
