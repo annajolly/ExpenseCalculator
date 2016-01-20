@@ -3,13 +3,13 @@
 import sys
 import cgi
 import re
+import subprocess
 
 form = cgi.FieldStorage()
 
 def isUser(name):
     try:
         ref = open("./users.csv","r")
-	# ref = open("/home/2014/ajolly3/public_html/users.csv","r")
         #OPTIMIZE THIS LOOP
         foundUser = False
         while (foundUser == False):
@@ -29,7 +29,7 @@ def isUser(name):
 def CreateNewUser(name, limit):
     try:
         fileName = "./" + name + ".csv"
-        ref = open(filename, "w")
+        ref = open(fileName, "w")
         ref.write(limit)
         ref2 = open("./users.csv", "a")
         ref2.write(name + "\n")
@@ -40,6 +40,7 @@ def CreateNewUser(name, limit):
         raise
     ref.close()
     ref2.close()
+    subprocess.call(['chmod', '0755', fileName])
 
 def ReadUserInfo(address):
     try:
@@ -157,7 +158,7 @@ def Layout(name, limit, expenses, error):
     print "</html>"
     
 name = form["name"].value
-fileName = "/home/2014/ajolly3/public_html/" + name + ".csv"
+fileName = "./" + name + ".csv"
 
 limit = ""
 expenses = ""
@@ -175,10 +176,8 @@ if "import" in form:
 
 if "newLimit" in form:
     newLimit = form["newLimit"].value
-    try:
-	float(newLimit)
-    except:
-	Layout(name, limit, expenses, "Allowance must be a number")
+    if (not (re.search(r'[0-9]*[\.][0-9][0-9]',newLimit))):
+	Layout(name, limit, expenses, "Allowance must be a number of form 12.00")
     else:
         limit = newLimit
         UpdateLimit(fileName, limit)
@@ -187,15 +186,16 @@ if "newLimit" in form:
 	Layout(name, limit, expenses, noError)
     
 if "createNewUser" in form:
-    CreateNewUser(name, form["limit"].value)
-"""
     if (not name.isalnum()):
         CreateNewAccount(name, "0", "Username must be alphanumeric characters only")    
-    elif (not form["limit"].value.isdigit()):
-        CreateNewAccount(name, "0", "Allowance must be a number")
+    elif (not (re.search(r'[0-9]*[\.][0-9][0-9]',form["limit"].value))):
+        CreateNewAccount(name, "0", "Allowance must be a number of form 12.00")
     else:
         CreateNewUser(name, form["limit"].value)
-"""
+        limitAndExpenses = ReadUserInfo(fileName)
+        limit = limitAndExpenses[0]
+        expenses = limitAndExpenses[1]
+        Layout(name, limit, expenses, noError)
 
 if "addExpense" in form:
     date = form["date"].value
