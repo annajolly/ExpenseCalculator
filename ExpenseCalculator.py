@@ -2,12 +2,14 @@
 
 import sys
 import cgi
+import re
 
 form = cgi.FieldStorage()
 
 def isUser(name):
     try:
-        ref = open("/home/2014/ajolly3/public_html/users.csv","r")
+        ref = open("./users.csv","r")
+	# ref = open("/home/2014/ajolly3/public_html/users.csv","r")
         #OPTIMIZE THIS LOOP
         foundUser = False
         while (foundUser == False):
@@ -94,6 +96,7 @@ def addExpense(name, date, amount, description):
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise
+    ref.close()
 
 # create new account webpage
 def CreateNewAccount(name, init, error):
@@ -108,7 +111,8 @@ def CreateNewAccount(name, init, error):
         print "Error: %s. Try again." % (error,)
     print "If you would like to create an account, fill out the following form and click \"Submit\".<br>"
     print "Else, click \"Cancel\" to go back to the sign-in page.<br>"
-    print "<form name=\"createNewUser\" action=\"./ExpenseCalculator.py\" method=\"post\">"
+    print "<form name=\"createNewUser2\" action=\"./ExpenseCalculator.py\" method=\"post\">"
+    print "<input type=\"hidden\" name=\"createNewUser\" value=\"1\">"
     print "Select a username (letters and numbers only): <input type=\"text\" name=\"name\">"
     print "Choose a daily allowance: <input type=\"text\" name=\"limit\">"
     print "<input type=\"submit\" value=\"Submit\">"
@@ -140,7 +144,7 @@ def Layout(name, limit, expenses, error):
     for expense in expenses:
         print "  %s    $%s    %s" % (expense[0],expense[1], expense[2],)
 	print "<br>"
-    print "<form name=\"addExpense\" action=\"./expenseCalculator.py\" method=\"post\">"
+    print "<form name=\"addExpense\" action=\"./ExpenseCalculator.py\" method=\"post\">"
     print "Add an expense:"
     print "<br>"
     print "Date(YYYY/MM/DD): <input type=\"text\" name=\"date\"><br>"
@@ -171,15 +175,16 @@ if "import" in form:
 
 if "newLimit" in form:
     newLimit = form["newLimit"].value
-    
-    # need "== true"?
-    
-    if (not newLimit.isdigit()):
-        Layout(name, limit, expenses, "Allowance must be a number")
+    try:
+	float(newLimit)
+    except:
+	Layout(name, limit, expenses, "Allowance must be a number")
     else:
         limit = newLimit
-        UpdateLimit(fileName, form["newLimit"].value)
-        Layout(name, limit, expenses, error)
+        UpdateLimit(fileName, limit)
+        limitAndExpenses = ReadUserInfo(fileName)
+	expenses = limitAndExpenses[1]
+	Layout(name, limit, expenses, noError)
     
 if "createNewUser" in form:
     CreateNewUser(name, form["limit"].value)
@@ -196,15 +201,15 @@ if "addExpense" in form:
     date = form["date"].value
     amount = form["amount"].value
     description = form["description"].value
-
-    #check valid date
-    if (not date.isdigit()):
-        Layout(name, limit, expense, "Date must be of format  ")
-
-    elif (not amount.isdigit()):
-        Layout(name, limit, expense, "Amount must be a floating point number")
+    #check valid date 
+    if (not (re.search(r'2[0-9][0-9][0-9][/][0-1][0-9][/][0-3][0-9]',date))):
+        Layout(name, limit, expenses, "Date must be of format YYYY/MM/DD")
+    elif (not (re.search(r'[0-9]*[\.][0-9][0-9]',amount))):
+        Layout(name, limit, expenses, "Amount must be a floating point number")
     elif (not description.isalnum()):
-        Layout(name, limit, expense, "Description must be an alphanumeric string")
+        Layout(name, limit, expenses, "Description must be an alphanumeric string")
     else:
         addExpense(name, date, amount, description)
-
+	limitAndExpenses = ReadUserInfo(fileName)
+	expenses = limitAndExpenses[1]
+	Layout(name, limit, expenses, noError)
