@@ -15,10 +15,9 @@ def isUser(name):
         while (foundUser == False):
             user = ref.readline()
             if (user == (name+'\n')):
-		foundUser = True
+		return True
             elif user == '\n':
                 return False
-        return foundUser
     except IOError:
         print "IO Error"
     except:
@@ -118,10 +117,7 @@ def CreateNewAccount(name, init, error):
     print "Choose a daily allowance: <input type=\"text\" name=\"limit\">"
     print "<input type=\"submit\" value=\"Submit\">"
     print "</form>"
-
-# REPLACE WITH SIMPLE LINK??:
-    
-    print "<form name=\"backToLogin\" action=\"./index.html\" method=\"post\">"
+    print "<form action=\"./index.html\">"
     print "<input type=\"submit\" value=\"Cancel\">"
     print "</form>"
     
@@ -175,14 +171,15 @@ if "import" in form:
         CreateNewAccount(name, "1", "0")
 
 if "newLimit" in form:
+    
     newLimit = form["newLimit"].value
+    limitAndExpenses = ReadUserInfo(fileName)
+    expenses = limitAndExpenses[1]
     if (not (re.search(r'[0-9]*[\.][0-9][0-9]',newLimit))):
 	Layout(name, limit, expenses, "Allowance must be a number of form 12.00")
     else:
         limit = newLimit
         UpdateLimit(fileName, limit)
-        limitAndExpenses = ReadUserInfo(fileName)
-	expenses = limitAndExpenses[1]
 	Layout(name, limit, expenses, noError)
     
 if "createNewUser" in form:
@@ -201,6 +198,8 @@ if "addExpense" in form:
     date = form["date"].value
     amount = form["amount"].value
     description = form["description"].value
+    limitAndExpenses = ReadUserInfo(fileName)
+    expenses = limitAndExpenses[1]
     #check valid date 
     if (not (re.search(r'2[0-9][0-9][0-9][/][0-1][0-9][/][0-3][0-9]',date))):
         Layout(name, limit, expenses, "Date must be of format YYYY/MM/DD")
@@ -210,6 +209,4 @@ if "addExpense" in form:
         Layout(name, limit, expenses, "Description must be an alphanumeric string")
     else:
         addExpense(name, date, amount, description)
-	limitAndExpenses = ReadUserInfo(fileName)
-	expenses = limitAndExpenses[1]
 	Layout(name, limit, expenses, noError)
