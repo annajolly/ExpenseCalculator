@@ -61,6 +61,10 @@ h6 {
   background-size: cover;
 }
 
+.makeRed{
+  color: red;
+}
+
 </style>
 
 <script>
@@ -100,8 +104,28 @@ function loginRegister() {
     }
 }
 
+//checks if amount is in correct format
+function goodAmountFormat(amount) {
+  var exp = /^((\d+)|(\d+\.\d\d))$/;
+  var res = amount.match(exp);
+  //if date matches regex
+  if (res !== null){
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+//displays error message if amount is wrong format
+function amountError() {
+  //<h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required><div class="makeRed">
+  $('#amountErrorMessage').html('Format required: 12 or 12.00</div>')
+}
+
+//checks if date is in correct format
 function goodDateFormat(date) {
-  var exp = /^20[0-9][0-9]\/((1[0-2])|[1-9]|(0[1-9]))\/((0[1-9])|[1-9]|([1-2][0-9])|30)$/;
+  var exp = /^(20[0-9][0-9]\/((1[0-2])|[1-9]|(0[1-9]))\/((0[1-9])|[1-9]|([1-2][0-9])|30))$/;
   var res = date.match(exp);
   //if date matches regex
   if (res !== null){
@@ -112,21 +136,45 @@ function goodDateFormat(date) {
   }
 }
 
+//displays error message if date is wrong format
 function dateError() {
-  $('#dateDiv').html('<h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required>Hi');
+  $('#dateErrorMessage').html('Format required is yyyy/mm/dd</div>');
 }
 
-function addExpense() {
+function clearErrorMessages() {
+  $('#dateErrorMessage').html('');
+  $('#amountErrorMessage').html('');
+}
+
+var notFirstError = false;
+
+function addExpense(e) {
+  e.preventDefault();
   var date = $('#date').val();
-  if (!goodDateFormat(date)) {
-    dateError();
-  }
   var amount = $('#amount').val();
   var description = $('#description').val();
-  userArr.push()
-  console.log(date);
-  console.log(amount);
-  console.log(description);
+  //validate date and amount format
+  if (notFirstError) {
+    clearErrorMessages();
+  }
+  if (!goodDateFormat(date)) {
+    notFirstError = true;
+    if (!goodAmountFormat(amount)) {
+      dateError();
+      amountError();
+    }
+    else {
+      dateError();
+    }
+  }
+  else if (!goodAmountFormat(amount)) {
+    amountError();
+  }
+  else {
+    notFirstError = false;
+    var newExpense = {"date":date,"amount":amount,"description":description}
+    userArr[userID].expenses.push(newExpense);
+  }
 }
 
 function loadCalculator() {
@@ -174,7 +222,7 @@ function loadCalculator() {
   var expenses = '';
   //scroll to caulculator
   $('html, body').animate({scrollTop:$("#scrollHere").offset().top}, 1000);
-  $("#calculator").html('<div class="col-xs-12"><h2 class="text-center">Today' + "'" + 's Allowance:</h2><h4 class="text-center">Monthly Allowance:</h4></div><div class="col-xs-12"><h3 class="text-center">Expenses today:</h3><center><form name="input" action="" onsubmit="javascript:addExpense();" method="get"><div id="dateDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Description:</h4><input id="description" type="text" name="description" style="width: 150px" placeholder="e.g. groceries"></div><div class = "col-xs-12 col-sm-3"><br><br><input id="submitButton" type="submit" value="Submit"></div></form></center></div>');
+  $("#calculator").html('<div class="col-xs-12"><h2 class="text-center">Today' + "'" + 's Allowance:</h2><h4 class="text-center">Monthly Allowance:</h4></div><div class="col-xs-12"><h3 class="text-center">Expenses today:</h3><center><form name="input" action="" onsubmit="javascript:addExpense(event);" method="get"><div id="dateDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required><div id="dateErrorMessage" class="makeRed"></div></div><div id="amountDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required><div id="amountErrorMessage" class="makeRed"></div></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Description:</h4><input id="description" type="text" name="description" style="width: 150px" placeholder="e.g. groceries"></div><div class = "col-xs-12 col-sm-3"><br><br><input id="submitButton" type="submit" value="Submit"></div></form></center></div>');
 }
 
 function logout() {
