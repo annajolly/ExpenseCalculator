@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>ExpenseCalculator</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="author" content="Anna Jolly">
+  <link href="https://fonts.googleapis.com/css?family=Baloo+Bhai" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+
+<style>
+
+body {
+  font-family: 'Baloo Bhai';
+}
+
+h6 {
+  width: 50%;
+  height: 60px;
+  margin: 0;
+  padding: 0;
+  display: inline;
+  font-size: 80px;
+}
+
+#title {
+  padding: 60px;
+}
+
+#login {
+  padding: 90px;
+}
+
+#login2 {
+  padding: 90px;
+}
+
+#calculator {
+
+}
+.navbar-brand>img {
+  margin-top: -12px;
+  height: 45px;
+}
+
+.light-grey-bg{
+  background-color: rgb(228, 230, 234);
+}
+
+.btn-circle{
+  border-radius: 50%;
+}
+
+#home{
+  background-image:url('http://res.cloudinary.com/dfhscxvt6/image/upload/v1474726233/bg-50opacity_fjhwte.png');
+  padding-top: 60px;
+  padding-bottom: 25px;
+  background-size: cover;
+}
+
+</style>
+
+<script>
+
+/*var userArrStr = '{"users":[{"username": "Anna","password": "Anna","monthlyAllowance": 600,"currentExpenditureAmount": 0,"expenses": [{"date":"09/24/2016","amount":"40.23","description":"Provigo"}]}]}';
+var userArrObj = JSON.parse(userArrStr);
+var userArr = userArrObj.users;*/
+var userArr;
+var userID;
+var username;
+
+//import users.json
+function importUsers() {
+  $.ajax({url: "http://crossorigin.me/http://cs.mcgill.ca/~ajolly3/users.json", success: function(result){
+    userArr = result.users;
+        }});
+}
+
+function loginRegister() {
+    username = $('#username').val();
+    //loop through imported users, checking if user already exists
+    var userExists = false;
+    for (var i=0; i<userArr.length; i++) {
+      if (username == userArr[i].username) {
+        userExists = true;
+        userID = i;
+      }
+    }
+    //if user exists, ask for password
+    if (userExists) {
+      $("#login").html('<h3 class="text-center">Hi ' + username + '!</h3><h3 class="text-center">Please enter your password:</h3><center><form name="input" action="javascript:loginPassword();" method="get"><input id="password1" type="password" name="pwd" required></form></center>');
+      //<input id="passwordSubmitButton1" type="button" value="Login">
+    }
+    //if user does not exist, ask them to register
+    else {
+      $("#login").html('<h3 class="text-center"> The username <i>' + username + '</i> is available!</h3><h3 class="text-center">Please choose a password:</h3><center><form name="input" action="javascript:registerPassword();" method="get"><input id="password2" type="password" name="pwd" required></form></center>');
+    }
+}
+
+function goodDateFormat(date) {
+  var exp = /^20[0-9][0-9]\/((1[0-2])|[1-9]|(0[1-9]))\/((0[1-9])|[1-9]|([1-2][0-9])|30)$/;
+  var res = date.match(exp);
+  //if date matches regex
+  if (res !== null){
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+function dateError() {
+  $('#dateDiv').html('<h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required>Hi');
+}
+
+function addExpense() {
+  var date = $('#date').val();
+  if (!goodDateFormat(date)) {
+    dateError();
+  }
+  var amount = $('#amount').val();
+  var description = $('#description').val();
+  userArr.push()
+  console.log(date);
+  console.log(amount);
+  console.log(description);
+}
+
+function loadCalculator() {
+  //get other info from JSON
+  var monthlyAllowance = userArr[userID].monthlyAllowance;
+  var currentExpenditureAmount = userArr[userID].currentExpenditureAmount;
+  //calculate daily allowance
+  //get date
+  var today = new Date();
+  var year = today.getFullYear();
+  var month = today.getMonth();
+  var day = today.getDate();
+  var daysInMonth;
+  //if february
+  if (month==1) {
+    //if leap year
+    if (year%4==0) {
+      if (year%100==0) {
+        if (year%400 ==0) {
+          daysInMonth = 29;
+        }
+        else {
+          daysInMonth = 28;
+        }
+      }
+      else {
+        daysInMonth = 29;
+      }
+    }
+    else {
+      daysInMonth = 28;
+    }
+  }
+  //if apr, jun, sep, or nov
+  else if (month==3 || month==5 || month==8 || month==10) {
+    daysInMonth = 30;
+  }
+  //if jan, mar, may, jul, aug, oct, dec
+  else {
+    daysInMonth = 31;
+  }
+  //var dailyAllowance = Math.floor(monthlyAllowance/daysInMonth);
+  //calculate today's allowance
+  var todaysAllowance = (monthlyAllowance - currentExpenditureAmount)
+  var expenses = '';
+  //scroll to caulculator
+  $('html, body').animate({scrollTop:$("#scrollHere").offset().top}, 1000);
+  $("#calculator").html('<div class="col-xs-12"><h2 class="text-center">Today' + "'" + 's Allowance:</h2><h4 class="text-center">Monthly Allowance:</h4></div><div class="col-xs-12"><h3 class="text-center">Expenses today:</h3><center><form name="input" action="" onsubmit="javascript:addExpense();" method="get"><div id="dateDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Description:</h4><input id="description" type="text" name="description" style="width: 150px" placeholder="e.g. groceries"></div><div class = "col-xs-12 col-sm-3"><br><br><input id="submitButton" type="submit" value="Submit"></div></form></center></div>');
+}
+
+function logout() {
+  //reset all the variables
+  userArr = [];
+  userID = 0;
+  username = '';
+  $("#calculator").html();
+  $("#login2").html('<div id="login"><h3 class="text-center">Login/Register</h3><center><form name="input" action="javascript:loginRegister();" method="get"><input id="username" type="text" name="name" placeholder="Username" required></form></center></div>');
+}
+
+function clearLogin() {
+  $("#login2").html('<center><form name="input" action="" onsubmit="javascript:logout();" method="get"><input type="submit" value="Logout" required></form></center>');
+  //make background image shorter
+  $('#home').css("padding-bottom","100px");
+}
+
+function loginPassword() {
+  var pwd = $('#password1').val();
+    //check that password is correct
+    if (pwd == userArr[userID].password) {
+      console.log("login successful");
+      clearLogin();
+      loadCalculator();
+    }
+    else {
+      $("#login2").html('<h3 class="text-center">Password incorrect, ' + username + '.</h3><h3 class="text-center">Please enter your password:</h3><center><form name="input" action="javascript:loginPassword();" method="get"><input id="password1" type="password" name="pwd" required></form></center>');
+    }
+}
+
+function registerPassword() {
+  var pwd = $('#password2').val();
+  //add entry to database
+  /*
+  userArrObj['users'].push({"username":username,"password":pwd});
+  userArrStr = JSON.stringify(userArrObj);
+  userArr = userArrObj.users;
+  */
+  userArr.push({"username":username,"password":pwd,monthlyAllowance:0,"currentExpenditureAmount":0,expenses:[]});
+  console.log(userArr);
+  loadCalculator();
+  //FIX JSON FORMATTING
+  //console.log(userArr);
+}
+
+$(document).ready(function() {
+  //trigger click event if enter key is pressed
+  importUsers();
+});
+
+</script>
+
+<!--The scrollable area-->
+<body data-spy="scroll" data-target=".navbar" data-offset="50">
+
+<!--Navigation bar-->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">ExpenseCalculator</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li class="active"><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#tour">Tour</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+    <!--Home-->
+    <div id="home" class="col-xs-12">
+      <center><div id="title">
+      <h6 style="color: rgb(250,181,68)">Expense</h6>
+<h6>Calculator</h6>
+        </div></center>
+      <div id="login2">
+      <div id="login">
+      <h3 class="text-center">Login/Register</h3>
+		<center><form name="input" action="javascript:loginRegister();" method="get">
+		<input id="username" type="text" name="name" placeholder="Username" required>
+		<!--<input id="submitButton" type="button" value="Submit">-->
+      </form></center>
+      </div>
+      </div>
+      <div id="scrollHere">
+      </div>
+    </div>
+    <!--Calculator-->
+    <div id="calculator" class="col-xs-12">
+    </div>
+    <!--About-->
+    <div id="about" class="col-xs-12" style="background-color: grey; padding-top: 50px; padding-bottom: 50px">
+      <div class="text-center">
+        <h1>What is ExpenseCalculator?</h1>
+      </div>
+      <div class="col-xs-12 col-sm-7 col-md-8">
+        <h3 style="color: white">ExpenseCalculator is a tool that helps you track your monthly spending. Simply adjust the monthly allowance setting to suit your personal need, and insert your expenses as you go. ExpenseCalculator will let you know how much you can spend today to stay on track for your monthly goal.</h3>
+        <br>
+      </div>
+      <div class="col-xs-12 col-sm-5 col-md-4">
+        <img class="img-responsive" id="logo" src="http://res.cloudinary.com/dfhscxvt6/image/upload/v1474691752/expenseCalculatorLogo_i82dit.png" alt="ExpenseCalculator logo">
+      </div>
+    </div>
+    <!--Tour-->
+    <div id="tour" class="col-xs-12 light-grey-bg" style="padding-top: 50px; padding-bottom: 50px">
+      <h1 class="text-center">What does ExpenseCalculator look like?</h1>
+
+    </div>
+    <!--Contact-->
+    <div id="contact" class="col-xs-12" style="background-color: white; padding-top: 30px; padding-bottom: 50px">
+      <h2 class="text-center">Contact me:</h2>
+      <br>
+      <div class="col-sm-4"></div>
+      <div class="col-xs-12 col-sm-4">
+        <div class="col-xs-4">
+          <a href="https://www.facebook.com/anna.jolly.92" target='_blank'><button class="btn btn-default btn-circle"><i class="fa fa-facebook" aria-hidden="true"></i></button></a>
+        </div>
+        <div class="col-xs-4">
+          <a href="https://www.linkedin.com/in/anna-jolly-671478127?trk=hp-identity-name" target='_blank'><button class="btn btn-default btn-circle"><i class="fa fa-linkedin" aria-hidden="true"></i></button></a>
+        </div>
+        <div class="col-xs-4">
+          <a href="https://github.com/annajolly" target='_blank'><button class="btn btn-default btn-circle"><i class="fa fa-github" aria-hidden="true"></i></button></a>
+        </div>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+
+  </div>
+  </div>
+</body>
