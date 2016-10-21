@@ -1,0 +1,13 @@
+{
+	"users": [{
+		"username": "Anna",
+		"password": "Anna",
+		"monthlyAllowance": 600,
+		"currentExpenditureAmount": 0,
+		"expenses": {
+			"date": "09/24/2016",
+			"amount": "40.23",
+			"description": "Provigo"
+		}
+	}]
+}
