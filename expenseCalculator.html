@@ -65,6 +65,16 @@ h6 {
   color: red;
 }
 
+.h4{
+  size: 1em;
+}
+
+/* TO-DO:Customize buttons! */
+button {
+  font-size: 14px;
+  height: 24px;
+}
+
 </style>
 
 <script>
@@ -106,7 +116,7 @@ function loginRegister() {
 
 //checks if amount is in correct format
 function goodAmountFormat(amount) {
-  var exp = /^((\d+)|(\d+\.\d\d))$/;
+  var exp = /^((\d+)|(\d*\.\d\d))$/;
   var res = amount.match(exp);
   //if date matches regex
   if (res !== null){
@@ -120,7 +130,7 @@ function goodAmountFormat(amount) {
 //displays error message if amount is wrong format
 function amountError() {
   //<h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required><div class="makeRed">
-  $('#amountErrorMessage').html('Format required: 12 or 12.00</div>')
+  $('#amountErrorMessage').html('Format required: 12 or 12.00')
 }
 
 //checks if date is in correct format
@@ -177,10 +187,37 @@ function addExpense(e) {
   }
 }
 
+function updateAllowanceError() {
+  $('#monthly').html('<center><form name="input" action="" onsubmit="javascript:updateMonthlyAllowance(event);" method="get"><span class="h4">Monthly Allowance: $</span><input id="newAllowance" type="text" name="newAllowance" style="width: 100px" placeholder="500.00" required><input id="submitButton" type="submit" value="Update"><div class="makeRed">Format required: 500 or 500.00</div></form></center>');
+}
+
+function updateMonthlyAllowance(e) {
+  e.preventDefault();
+  var newMonthlyAllowanceStr = $('#newAllowance').val();
+  //convert to int
+  var newMonthlyAllowance = parseInt(newMonthlyAllowanceStr,10);
+  //if couldn't convert successfully
+  if (isNaN(newMonthlyAllowance)) {
+    updateAllowanceError();
+  }
+  else {
+    //update DS
+    userArr[userID].monthlyAllowance = newMonthlyAllowance;
+    //reload calculator
+    loadCalculator();
+  }
+}
+
+function allowChange() {
+  $('#monthly').html('<center><form name="input" action="" onsubmit="javascript:updateMonthlyAllowance(event);" method="get"><span class="h4">Monthly Allowance: $</span><input id="newAllowance" type="text" name="newAllowance" style="width: 100px" placeholder="500.00" required><input id="submitButton" type="submit" value="Update"></form></center>');
+}
+
+
 function loadCalculator() {
   //get other info from JSON
+  var expenses = userArr[userID].expenses;
   var monthlyAllowance = userArr[userID].monthlyAllowance;
-  var currentExpenditureAmount = userArr[userID].currentExpenditureAmount;
+  var pastExpenditureAmount = userArr[userID].pastExpenditureAmount;
   //calculate daily allowance
   //get date
   var today = new Date();
@@ -216,26 +253,41 @@ function loadCalculator() {
   else {
     daysInMonth = 31;
   }
-  //var dailyAllowance = Math.floor(monthlyAllowance/daysInMonth);
-  //calculate today's allowance
-  var todaysAllowance = (monthlyAllowance - currentExpenditureAmount)
-  var expenses = '';
-  //scroll to caulculator
+  //get todays expenses and calculate how much has been spent today
+  var todaysExpenseAmount = 0;
+  var todaysExpenses = [];
+  for (var i=0; i<expenses.length; i++) {
+    //if expense is from today
+    if (expenses[i].date == "2016/09/24") {
+    //if (expenses[i].date == year.toString() + "/" + month.toString() + "/" + day.toString()) {
+      //print expense to page
+      todaysExpenses.push(expenses[i]);
+      todaysExpenseAmount += expenses[i].amount;
+    }
+  }
+  //calculate how much can still be spent today
+  var todaysAllowance = monthlyAllowance - pastExpenditureAmount;
+  todaysAllowance /= (daysInMonth-day+1);
+  todaysAllowance -= todaysExpenseAmount;
+  //scroll to calculator
   $('html, body').animate({scrollTop:$("#scrollHere").offset().top}, 1000);
-  $("#calculator").html('<div class="col-xs-12"><h2 class="text-center">Today' + "'" + 's Allowance:</h2><h4 class="text-center">Monthly Allowance:</h4></div><div class="col-xs-12"><h3 class="text-center">Expenses today:</h3><center><form name="input" action="" onsubmit="javascript:addExpense(event);" method="get"><div id="dateDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required><div id="dateErrorMessage" class="makeRed"></div></div><div id="amountDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required><div id="amountErrorMessage" class="makeRed"></div></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Description:</h4><input id="description" type="text" name="description" style="width: 150px" placeholder="e.g. groceries"></div><div class = "col-xs-12 col-sm-3"><br><br><input id="submitButton" type="submit" value="Submit"></div></form></center></div>');
+  $("#calculator").html('<div class="col-xs-12"><h2 class="text-center">Today' + "'" + 's Allowance: $' + todaysAllowance.toFixed(2) + '</h2><div id="monthly"><h4 class="text-center">Monthly Allowance: $' + monthlyAllowance.toFixed(2) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="allowChange()">Update</button></h4></div></div><div class="col-xs-12"><h3 class="text-center">Expenses today:</h3><center><form name="input" action="" onsubmit="javascript:addExpense(event);" method="get"><div id="dateDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Date:</h4><input id="date" type="text" name="date" style="width: 100px" placeholder="yyyy/mm/dd" required><div id="dateErrorMessage" class="makeRed"></div></div><div id="amountDiv" class="col-xs-12 col-sm-3"><h4 class="text-center">Amount:</h4>$<input id="amount" type="text" name="amount" style="width: 60px" placeholder="0.00" required><div id="amountErrorMessage" class="makeRed"></div></div><div class="col-xs-12 col-sm-3"><h4 class="text-center">Description:</h4><input id="description" type="text" name="description" style="width: 150px" placeholder="e.g. groceries"></div><div class = "col-xs-12 col-sm-3"><br><br><input id="submitButton" type="submit" value="Add Expense"></div></form></center></div>');
 }
 
-function logout() {
+function logout(e) {
+  e.preventDefault();
   //reset all the variables
   userArr = [];
   userID = 0;
   username = '';
+  notFirstError = false;
   $("#calculator").html();
-  $("#login2").html('<div id="login"><h3 class="text-center">Login/Register</h3><center><form name="input" action="javascript:loginRegister();" method="get"><input id="username" type="text" name="name" placeholder="Username" required></form></center></div>');
+  $("#login").html('<h3 class="text-center">Login/Register</h3><center><form name="input" action="javascript:loginRegister();" method="get"><input id="username" type="text" name="name" placeholder="Username" required></form></center>');
+  $('html, body').animate({scrollTop:$("#home").offset().top}, 1000);
 }
 
 function clearLogin() {
-  $("#login2").html('<center><form name="input" action="" onsubmit="javascript:logout();" method="get"><input type="submit" value="Logout" required></form></center>');
+  $("#login").html('<center><form name="input" action="" onsubmit="javascript:logout(event);" method="get"><input type="submit" value="Logout"></form></center>');
   //make background image shorter
   $('#home').css("padding-bottom","100px");
 }
@@ -249,7 +301,7 @@ function loginPassword() {
       loadCalculator();
     }
     else {
-      $("#login2").html('<h3 class="text-center">Password incorrect, ' + username + '.</h3><h3 class="text-center">Please enter your password:</h3><center><form name="input" action="javascript:loginPassword();" method="get"><input id="password1" type="password" name="pwd" required></form></center>');
+      $("#login").html('<h3 class="text-center">Password incorrect, ' + username + '.</h3><h3 class="text-center">Please enter your password:</h3><center><form name="input" action="javascript:loginPassword();" method="get"><input id="password1" type="password" name="pwd" required></form></center>');
     }
 }
 
@@ -262,7 +314,6 @@ function registerPassword() {
   userArr = userArrObj.users;
   */
   userArr.push({"username":username,"password":pwd,monthlyAllowance:0,"currentExpenditureAmount":0,expenses:[]});
-  console.log(userArr);
   loadCalculator();
   //FIX JSON FORMATTING
   //console.log(userArr);
@@ -301,14 +352,12 @@ $(document).ready(function() {
       <h6 style="color: rgb(250,181,68)">Expense</h6>
 <h6>Calculator</h6>
         </div></center>
-      <div id="login2">
       <div id="login">
       <h3 class="text-center">Login/Register</h3>
 		<center><form name="input" action="javascript:loginRegister();" method="get">
 		<input id="username" type="text" name="name" placeholder="Username" required>
 		<!--<input id="submitButton" type="button" value="Submit">-->
       </form></center>
-      </div>
       </div>
       <div id="scrollHere">
       </div>
@@ -356,3 +405,5 @@ $(document).ready(function() {
   </div>
   </div>
 </body>
+
+</html>
